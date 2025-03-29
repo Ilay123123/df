@@ -1,0 +1,19 @@
+# Byte-compiled Python files
+__pycache__/
+*.py[cod]
+
+# Virtual environment folders
+venv/
+env/
+
+# Logs
+*.log
+
+# IDE/Editor files
+.vscode/
+.idea/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
