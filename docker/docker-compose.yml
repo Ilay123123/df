@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  chrome:
+    build:
+      context: .
+      dockerfile: Dockerfile.chrome
+    volumes:
+      - ./app:/home/tester/app
+      - ./tests:/home/tester/tests
+      - ./config:/home/tester/config
+      - ./scripts:/home/tester/scripts
+    environment:
+      - BROWSER=chrome
+    ports:
+      - "9222:9222"
+
+  firefox:
+    build:
+      context: .
+      dockerfile: Dockerfile.firefox
+    volumes:
+      - ./app:/home/tester/app
+      - ./tests:/home/tester/tests
+      - ./config:/home/tester/config
+      - ./scripts:/home/tester/scripts
+    environment:
+      - BROWSER=firefox
+    ports:
+      - "9223:9222"

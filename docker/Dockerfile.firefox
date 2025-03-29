@@ -1,0 +1,62 @@
+FROM ubuntu:22.04
+
+# Prevent interactive prompts during installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Set up timezone data
+RUN apt-get update && apt-get install -y tzdata && \
+    ln -fs /usr/share/zoneinfo/UTC /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    wget \
+    gnupg \
+    ca-certificates \
+    curl \
+    bzip2 \
+    libdbus-glib-1-2 \
+    libgtk-3-0 \
+    libx11-xcb1 \
+    libxt6 \
+    libpci3 \
+    python3 \
+    python3-pip \
+    xvfb \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Firefox
+RUN apt-get update && apt-get install -y firefox && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install GeckoDriver (Firefox WebDriver)
+RUN GECKO_VERSION=$(curl -sL https://api.github.com/repos/mozilla/geckodriver/releases/latest | grep -Po '"tag_name": "\K.*?(?=")') && \
+    wget -q "https://github.com/mozilla/geckodriver/releases/download/${GECKO_VERSION}/geckodriver-${GECKO_VERSION}-linux64.tar.gz" && \
+    tar -xzf "geckodriver-${GECKO_VERSION}-linux64.tar.gz" -C /usr/local/bin && \
+    chmod +x /usr/local/bin/geckodriver && \
+    rm "geckodriver-${GECKO_VERSION}-linux64.tar.gz"
+
+# Install Python Selenium and other testing dependencies
+RUN pip3 install selenium pytest pytest-html requests
+
+# Create a non-root user to run Firefox
+RUN useradd -m -d /home/tester -s /bin/bash tester
+WORKDIR /home/tester
+
+# Create a directory for test scripts
+RUN mkdir -p /home/tester/tests && chown -R tester:tester /home/tester
+
+# Add entrypoint script
+COPY docker/entrypoint_firefox.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Switch to non-root user
+USER tester
+
+# Expose port for debugging (if needed)
+EXPOSE 9222
+
+# Start Firefox in headless mode
+ENTRYPOINT ["/entrypoint_f.sh"]
